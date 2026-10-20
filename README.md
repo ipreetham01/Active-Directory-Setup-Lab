@@ -269,4 +269,3 @@ I checked that the client could ping the DC, used the DC as its DNS server, foun
 # Conclusion
 
 This lab builds a working Active Directory environment end to end: an isolated VMware network, a Domain Controller with DNS, OUs, users, a security group, a linked GPO, and a domain-joined Windows 10 client with verified logon and policy application.
-<img width="693" height="697" alt="01-vmnet1-host-only" src="https://github.com/user-attachments/assets/19fdf0ac-55aa-4603-814e-8d10ff3549d9" />
