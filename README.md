@@ -32,7 +32,8 @@ This project documents a Windows Active Directory lab built in **VMware Workstat
 
 VMnet1 is a host-only network on `192.168.175.0/24`. Both VMs use it so the lab is isolated.
 
-![VMnet1 host-only network in VMware Virtual Network Editor](screenshots/01-vmnet1-hostonly.png)
+![VMnet1 host-only network in VMware Virtual Network Editor](<img width="693" height="697" alt="01-vmnet1-hostonly" src="https://github.com/user-attachments/assets/902253dc-a668-47c4-bb01-6b58242710d3" />
+)
 
 The Domain Controller uses a static IP and points to itself for DNS, because it hosts the domain's DNS zone. No gateway is set since the network is isolated.
 
