@@ -31,14 +31,13 @@ This guide provides a step-by-step process to build a Windows Server-based Activ
 
 <img width="693" height="697" alt="01-vmnet1-host-only" src="https://github.com/user-attachments/assets/9682c619-5827-4cc9-8c05-e116a047641d" />
 
-
 ## 3. Connect the Server VM to VMnet1
 
 1. Create the Windows Server VM and install Windows Server from the ISO (choose **Custom: Install Windows only** and set an Administrator password).
 2. Go to **VM > Settings > Network Adapter**.
 3. Change the connection from **NAT** to **Custom: VMnet1 (Host-only)**.
 
-![VM network adapter set to custom VMnet1](screenshots/02-vm-adapter-vmnet1.png)
+<img width="885" height="915" alt="02-vm-adapter-vmnet1" src="https://github.com/user-attachments/assets/785ae15a-a083-41d0-b533-f1407bb42125" />
 
 ## 4. Configure a Static IP for the Server
 
@@ -51,7 +50,7 @@ This guide provides a step-by-step process to build a Windows Server-based Activ
    - **Preferred DNS server:** `192.168.175.10` (the server itself, because it will host the domain's DNS)
 4. Rename the computer to `DC01` and restart.
 
-![Static IP configuration on the Domain Controller](screenshots/03-dc-static-ip.png)
+<img width="1018" height="726" alt="03-dc-static-ip" src="https://github.com/user-attachments/assets/281e37b6-f988-4896-807b-0528bfb8ce37" />
 
 ---
 
@@ -62,11 +61,11 @@ This guide provides a step-by-step process to build a Windows Server-based Activ
 1. Open **Server Manager**, click **Manage**, and select **Add Roles and Features**.
 2. Leave the defaults until **Server Roles**, then select **Active Directory Domain Services**.
 
-![Select server roles](screenshots/04-select-server-roles.png)
+<img width="1010" height="805" alt="04-select-server-roles" src="https://github.com/user-attachments/assets/6912c929-0e49-42d7-bc4d-f46bbcb0f7f9" />
 
 3. Click **Add Features**, continue to **Confirmation**, and click **Install**.
 
-![Confirm installation selections](screenshots/05-confirm-install.png)
+<img width="1010" height="732" alt="05-confirm-install" src="https://github.com/user-attachments/assets/91a35f3f-c5e1-4209-a4dc-b07237995ba0" />
 
 ## 2. Promote the Server to a Domain Controller
 
@@ -75,7 +74,7 @@ This guide provides a step-by-step process to build a Windows Server-based Activ
 3. Keep **DNS server** selected and enter a DSRM (Directory Services Restore Mode) password.
 4. On **DNS Options**, a warning says a DNS delegation cannot be created because the authoritative parent zone cannot be found. This is expected in an isolated `.local` lab and can be ignored.
 
-![DNS Options warning](screenshots/06-dns-options-warning.png)
+<img width="1007" height="730" alt="06-dns-options-warning" src="https://github.com/user-attachments/assets/309a0487-c1e8-49a5-987c-fcc959a894c2" />
 
 5. Complete the prerequisite checks and click **Install**.
 
@@ -83,17 +82,17 @@ This guide provides a step-by-step process to build a Windows Server-based Activ
 
 The server restarts automatically. The logon screen now shows `PREETHAM\Administrator`, which confirms the server is part of the new domain.
 
-![Domain logon screen](screenshots/07-domain-login-screen.png)
+<img width="1240" height="787" alt="07-domain-login-screen" src="https://github.com/user-attachments/assets/a68c46ac-2be9-46e6-9350-01bef104e3ab" />
 
 ## 4. Verify the Domain and DNS
 
 1. Open **Tools > Active Directory Users and Computers**. The domain `preetham.local` is listed.
 
-![Active Directory Users and Computers](screenshots/08-aduc-domain.png)
+<img width="1022" height="727" alt="08-aduc-domain" src="https://github.com/user-attachments/assets/472d08b3-d34f-436d-81db-ee0fa9bdc1e1" />
 
 2. Open **Tools > DNS** and expand **Forward Lookup Zones > preetham.local**. The `dc01` host record points to `192.168.175.10`, and the `_msdcs`, `_sites`, `_tcp` and `_udp` folders are present.
 
-![DNS forward lookup zone records](screenshots/09-dns-zone-records.png)
+<img width="747" height="490" alt="09-dns-zone-records" src="https://github.com/user-attachments/assets/fa5d8aa2-7185-40ae-afe7-2a9e6cd5c747" />
 
 ---
 
@@ -104,13 +103,13 @@ The server restarts automatically. The logon screen now shows `PREETHAM\Administ
 1. In **Active Directory Users and Computers**, right-click the domain and select **New > Organizational Unit**.
 2. Enter the name (for example `IT`) and click **OK**.
 
-![Creating the IT OU](screenshots/10-create-ou-it.png)
+<img width="1022" height="727" alt="10-create-ou-it" src="https://github.com/user-attachments/assets/ebff2bdf-a550-44ec-9741-3f7e5daf7683" />
 
 3. Repeat for `HR` and `Workstations`.
 
 > **Note:** When "Protect container from accidental deletion" is checked, the OU cannot be deleted directly.
 
-![OUs created under the domain](screenshots/11-ous-created.png)
+<img width="1020" height="727" alt="11-ous-created" src="https://github.com/user-attachments/assets/3e49e824-510b-41b8-a96f-90a5eacd5dd5" />
 
 **Why OUs?** The default `Users` and `Computers` folders are containers, and Group Policy can only be linked to OUs (and to the domain or sites). OUs also let you organize objects by department.
 
@@ -118,7 +117,7 @@ The server restarts automatically. The logon screen now shows `PREETHAM\Administ
 
 Right-click the **IT** OU, select **New > User**, and enter the first name, last name and user logon name.
 
-![Creating the user Alex Sharma](screenshots/12-create-user-alex.png)
+<img width="432" height="372" alt="12-create-user-alex" src="https://github.com/user-attachments/assets/0219db4e-21c8-4393-b1ed-eeae2b3b7158" />
 
 Click **Next**, set a password, and review the options:
 
@@ -127,25 +126,25 @@ Click **Next**, set a password, and review the options:
 - **Password never expires:** commonly used for service accounts
 - **Account is disabled:** used to create an account for future use
 
-![Password options](screenshots/13-user-password-options.png)
+<img width="432" height="372" alt="13-user-password-options" src="https://github.com/user-attachments/assets/5cdf6f2d-3940-4a52-9840-08e10b61ff20" />
 
 Click **Next**, then **Finish**.
 
-![User confirmation](screenshots/14-user-alex-confirm.png)
+<img width="433" height="372" alt="14-user-alex-confirm" src="https://github.com/user-attachments/assets/7ad6c215-10d9-4081-a5c9-a0c8d37a53af" />
 
 Repeat the same steps to create **Priya Patel** in the **HR** OU.
 
-![Creating the user Priya Patel](screenshots/15-create-user-priya.png)
+<img width="431" height="371" alt="15-create-user-priya" src="https://github.com/user-attachments/assets/4d7812fd-a7d1-4f0d-bab9-56680b5cb143" />
 
 ## 3. Creating a Security Group
 
 Right-click the **IT** OU and select **New > Group**. Name it `IT-Support`, with scope **Global** and type **Security**.
 
-![Creating the IT-Support group](screenshots/16-create-group-it-support.png)
+<img width="431" height="370" alt="16-create-group-it-support" src="https://github.com/user-attachments/assets/1d7b3a35-b8cd-441a-8064-5d1deb8db267" />
 
 The IT OU now contains the user and the group.
 
-![IT OU contents](screenshots/17-it-ou-contents.png)
+<img width="1023" height="723" alt="17-it-ou-contents" src="https://github.com/user-attachments/assets/968d1602-2c54-44d0-8947-b332228cede5" />
 
 ---
 
@@ -157,7 +156,7 @@ The IT OU now contains the user and the group.
 2. Right-click the **IT** OU and select **Create a GPO in this domain, and Link it here**.
 3. Name it `IT-Workstation-Policy`.
 
-![Create and link a GPO to the IT OU](screenshots/18-create-and-link-gpo.png)
+<img width="1023" height="726" alt="18-create-and-link-gpo" src="https://github.com/user-attachments/assets/e3ee5191-1617-48e3-89b1-a110533a616d" />
 
 ## 2. Configure the Policy
 
@@ -165,7 +164,7 @@ The IT OU now contains the user and the group.
 2. Go to **User Configuration > Policies > Administrative Templates > Control Panel > Personalization**.
 3. Open **Prevent changing desktop background**, select **Enabled**, and click **OK**.
 
-![Prevent changing desktop background set to Enabled](screenshots/19-gpo-setting-enabled.png)
+<img width="680" height="631" alt="19-gpo-setting-enabled" src="https://github.com/user-attachments/assets/5a379e79-1115-4284-a8bc-ac89cb698b8b" />
 
 > **Note:** This is a *user* policy, so it applies to user accounts inside the IT OU. Microsoft's help text also says the "Desktop Wallpaper" policy must be enabled to fully stop users from changing their wallpaper. This lab verifies that the GPO is delivered and applied, shown in Part 6.
 
@@ -183,11 +182,11 @@ Connect the Windows 10 VM to **VMnet1** and set a static IP. **The client must u
 | Subnet mask | `255.255.255.0` |
 | Preferred DNS server | `192.168.175.10` |
 
-![Client static IP and DNS](screenshots/20-client-static-ip.png)
+<img width="395" height="452" alt="20-client-static-ip" src="https://github.com/user-attachments/assets/edd08115-1c74-4009-8c39-499b655b8e07" />
 
 Test the connection with `ping 192.168.175.10`. All four replies should come back (0% loss).
 
-![Ping from the client to the Domain Controller](screenshots/21-client-ping-dc.png)
+<img width="670" height="503" alt="21-client-ping-dc" src="https://github.com/user-attachments/assets/a7c01757-ba17-42df-8b59-79d22f163da1" />
 
 ## 2. Join the Domain
 
@@ -195,7 +194,7 @@ Test the connection with `ping 192.168.175.10`. All four replies should come bac
 2. On the **Computer Name** tab, click **Change**, select **Domain**, and enter `preetham.local`.
 3. Enter domain credentials that are allowed to join computers, then restart when prompted.
 
-![Joining the domain preetham.local](screenshots/22-join-domain.png)
+<img width="315" height="385" alt="22-join-domain" src="https://github.com/user-attachments/assets/4bccdd8f-d06e-4435-8aa1-43ffec14bf08" />
 
 ## 3. Sign in with a Domain Account
 
@@ -203,7 +202,7 @@ After the restart, choose **Other user** and sign in as `PREETHAM\alex.sharma`. 
 
 Open Command Prompt and run `whoami` and `echo %LOGONSERVER%`. The output shows the domain account and that `DC01` authenticated the logon.
 
-![whoami and LOGONSERVER](screenshots/23-whoami-logonserver.png)
+<img width="687" height="170" alt="23-whoami-logonserver" src="https://github.com/user-attachments/assets/a8353200-c369-429e-891b-3bfe55ba8b1e" />
 
 ---
 
@@ -216,7 +215,7 @@ Run:
 - `nltest /dsgetdc:preetham.local` to confirm the client finds `DC01.preetham.local`
 - `dir \\DC01\SYSVOL` to confirm the SYSVOL share (where Group Policy files live) is reachable
 
-![nltest and SYSVOL](screenshots/24-nltest-sysvol.png)
+<img width="672" height="491" alt="24-nltest-sysvol" src="https://github.com/user-attachments/assets/43b0a722-fd57-4716-b5e9-2fcb56eb5652" />
 
 ## 2. Confirm the GPO Is Applied
 
@@ -227,7 +226,7 @@ Run:
 
 Under **Applied Group Policy Objects** for `CN=Alex Sharma,OU=IT,DC=preetham,DC=local`, `IT-Workstation-Policy` is listed and was applied from `DC01.preetham.local`.
 
-![gpresult showing IT-Workstation-Policy applied](screenshots/25-gpresult-applied.png)
+<img width="797" height="800" alt="25-gpresult-applied" src="https://github.com/user-attachments/assets/c6e64ba9-199c-4400-b4ae-aca25f763ce4" />
 
 ---
 
