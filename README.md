@@ -1,17 +1,6 @@
-# Active Directory Lab: Domain Controller, DNS, Users, Groups and Group Policy
+# Setting Up Active Directory and Building a Domain Controller in VMware Workstation
 
-## Overview
-
-This project documents a Windows Active Directory lab built in **VMware Workstation**. A Windows Server 2022 virtual machine is promoted to a Domain Controller for a new forest (`preetham.local`). Organizational Units (OUs), users and a security group are created, a Group Policy Object (GPO) is linked to the IT OU, and a Windows 10 client is joined to the domain to verify authentication and policy delivery.
-
-## Objectives
-
-- Build an isolated host-only network in VMware Workstation
-- Install AD DS and promote a server to a Domain Controller
-- Create OUs, users and a security group
-- Create and link a Group Policy Object
-- Join a Windows 10 client to the domain
-- Verify domain logon, SYSVOL access and Group Policy application
+This guide provides a step-by-step process to build a Windows Server-based Active Directory (AD) lab on virtual machines in **VMware Workstation**. It covers creating a Domain Controller, organizing users with OUs and groups, applying Group Policy, and joining a Windows 10 client to the domain.
 
 ## Lab Environment
 
@@ -24,65 +13,169 @@ This project documents a Windows Active Directory lab built in **VMware Workstat
 | Domain Controller | `DC01` at `192.168.175.10` |
 | Client | `192.168.175.20` |
 | Network | VMnet1 (Host-only), `192.168.175.0/24` |
-| DNS server (both machines) | `192.168.175.10` |
 
 ---
 
-## 1. Virtual Network Setup
+# Part 1: Setting Up the Lab Environment
 
-VMnet1 is a host-only network on `192.168.175.0/24`. Both VMs use it so the lab is isolated.
+## 1. Download Required Files
 
-![VMnet1 host-only network in VMware Virtual Network Editor](<img width="693" height="697" alt="01-vmnet1-hostonly" src="https://github.com/user-attachments/assets/902253dc-a668-47c4-bb01-6b58242710d3" />
-)
+- Windows Server 2022 evaluation ISO: https://www.microsoft.com/en-us/evalcenter/
+- Windows 10 installation media (or an existing Windows 10 VM)
+- VMware Workstation: https://www.vmware.com/
 
-The Domain Controller uses a static IP and points to itself for DNS, because it hosts the domain's DNS zone. No gateway is set since the network is isolated.
+## 2. Check the Host-only Network
 
-![Static IP configuration on the Domain Controller](screenshots/02-dc-static-ip.png)
+1. Open VMware Workstation and go to **Edit > Virtual Network Editor**.
+2. Select **VMnet1**. It should be type **Host-only** with subnet `192.168.175.0` and mask `255.255.255.0`.
 
-## 2. Installing AD DS and Promoting the Server
+<img width="693" height="697" alt="01-vmnet1-host-only" src="https://github.com/user-attachments/assets/9682c619-5827-4cc9-8c05-e116a047641d" />
 
-1. In Server Manager, select **Manage > Add Roles and Features**.
-2. Select **Active Directory Domain Services** and install it.
 
-![AD DS installation confirmation](screenshots/03-adds-install.png)
+## 3. Connect the Server VM to VMnet1
 
-3. Click **Promote this server to a domain controller**, choose **Add a new forest**, and enter `preetham.local`.
-4. Set a DSRM password and complete the wizard. A DNS delegation warning appears; this is expected in an isolated `.local` lab.
-5. After the restart, the logon screen shows `PREETHAM\Administrator`.
+1. Create the Windows Server VM and install Windows Server from the ISO (choose **Custom: Install Windows only** and set an Administrator password).
+2. Go to **VM > Settings > Network Adapter**.
+3. Change the connection from **NAT** to **Custom: VMnet1 (Host-only)**.
 
-![Domain logon screen after promotion](screenshots/04-domain-login.png)
+![VM network adapter set to custom VMnet1](screenshots/02-vm-adapter-vmnet1.png)
 
-## 3. Verifying DNS
+## 4. Configure a Static IP for the Server
 
-The `preetham.local` zone contains the `dc01` host record (`192.168.175.10`) and the `_msdcs`, `_sites`, `_tcp` and `_udp` folders that AD depends on.
+1. Press `Win + R`, type `ncpa.cpl`, and press Enter.
+2. Open the Ethernet adapter properties, then **Internet Protocol Version 4 (TCP/IPv4)**.
+3. Use these settings:
+   - **IP address:** `192.168.175.10`
+   - **Subnet mask:** `255.255.255.0`
+   - **Default gateway:** leave empty (the network is isolated)
+   - **Preferred DNS server:** `192.168.175.10` (the server itself, because it will host the domain's DNS)
+4. Rename the computer to `DC01` and restart.
 
-![DNS forward lookup zone for preetham.local](screenshots/05-dns-zone-records.png)
+![Static IP configuration on the Domain Controller](screenshots/03-dc-static-ip.png)
 
-## 4. Organizational Units, Users and Groups
+---
 
-I created the **IT**, **HR** and **Workstations** OUs.
+# Part 2: Creating a Domain Controller
 
-![OUs created under preetham.local](screenshots/06-ous-created.png)
+## 1. Install Active Directory Domain Services (AD DS)
 
-Two test users were created: **Alex Sharma** (`alex.sharma`) in IT and **Priya Patel** (`priya.patel`) in HR, both set to change their password at next logon. A global security group, **IT-Support**, was created in the IT OU.
+1. Open **Server Manager**, click **Manage**, and select **Add Roles and Features**.
+2. Leave the defaults until **Server Roles**, then select **Active Directory Domain Services**.
 
-![IT OU containing the user and security group](screenshots/07-it-ou-user-and-group.png)
+![Select server roles](screenshots/04-select-server-roles.png)
 
-## 5. Group Policy
+3. Click **Add Features**, continue to **Confirmation**, and click **Install**.
 
-In Group Policy Management, I right-clicked the **IT** OU and selected **Create a GPO in this domain, and Link it here**, naming it **IT-Workstation-Policy**.
+![Confirm installation selections](screenshots/05-confirm-install.png)
 
-![Creating and linking the GPO to the IT OU](screenshots/08-create-and-link-gpo.png)
+## 2. Promote the Server to a Domain Controller
 
-Under **User Configuration > Policies > Administrative Templates > Control Panel > Personalization**, I enabled **Prevent changing desktop background**.
+1. After installation, click the **flag icon** in Server Manager and select **Promote this server to a domain controller**.
+2. In **Deployment Configuration**, choose **Add a new forest** and enter the root domain name `preetham.local`.
+3. Keep **DNS server** selected and enter a DSRM (Directory Services Restore Mode) password.
+4. On **DNS Options**, a warning says a DNS delegation cannot be created because the authoritative parent zone cannot be found. This is expected in an isolated `.local` lab and can be ignored.
 
-![Prevent changing desktop background set to Enabled](screenshots/09-gpo-setting-enabled.png)
+![DNS Options warning](screenshots/06-dns-options-warning.png)
 
-> This is a user policy, so it applies to users in the IT OU. Microsoft's help text notes that "Desktop Wallpaper" must also be enabled to fully lock the wallpaper. This lab verifies that the GPO is delivered and applied, shown in Section 7.
+5. Complete the prerequisite checks and click **Install**.
 
-## 6. Windows 10 Client and Domain Join
+## 3. Restart the Server
 
-The client uses a static IP and the Domain Controller as its DNS server. This is what lets it find the domain.
+The server restarts automatically. The logon screen now shows `PREETHAM\Administrator`, which confirms the server is part of the new domain.
+
+![Domain logon screen](screenshots/07-domain-login-screen.png)
+
+## 4. Verify the Domain and DNS
+
+1. Open **Tools > Active Directory Users and Computers**. The domain `preetham.local` is listed.
+
+![Active Directory Users and Computers](screenshots/08-aduc-domain.png)
+
+2. Open **Tools > DNS** and expand **Forward Lookup Zones > preetham.local**. The `dc01` host record points to `192.168.175.10`, and the `_msdcs`, `_sites`, `_tcp` and `_udp` folders are present.
+
+![DNS forward lookup zone records](screenshots/09-dns-zone-records.png)
+
+---
+
+# Part 3: Managing Organizational Units, Users and Groups
+
+## 1. Creating Organizational Units (OUs)
+
+1. In **Active Directory Users and Computers**, right-click the domain and select **New > Organizational Unit**.
+2. Enter the name (for example `IT`) and click **OK**.
+
+![Creating the IT OU](screenshots/10-create-ou-it.png)
+
+3. Repeat for `HR` and `Workstations`.
+
+> **Note:** When "Protect container from accidental deletion" is checked, the OU cannot be deleted directly.
+
+![OUs created under the domain](screenshots/11-ous-created.png)
+
+**Why OUs?** The default `Users` and `Computers` folders are containers, and Group Policy can only be linked to OUs (and to the domain or sites). OUs also let you organize objects by department.
+
+## 2. Creating Users
+
+Right-click the **IT** OU, select **New > User**, and enter the first name, last name and user logon name.
+
+![Creating the user Alex Sharma](screenshots/12-create-user-alex.png)
+
+Click **Next**, set a password, and review the options:
+
+- **User must change password at next logon:** forces a new password at first sign-in (selected for this lab)
+- **User cannot change password:** the user is blocked from changing it
+- **Password never expires:** commonly used for service accounts
+- **Account is disabled:** used to create an account for future use
+
+![Password options](screenshots/13-user-password-options.png)
+
+Click **Next**, then **Finish**.
+
+![User confirmation](screenshots/14-user-alex-confirm.png)
+
+Repeat the same steps to create **Priya Patel** in the **HR** OU.
+
+![Creating the user Priya Patel](screenshots/15-create-user-priya.png)
+
+## 3. Creating a Security Group
+
+Right-click the **IT** OU and select **New > Group**. Name it `IT-Support`, with scope **Global** and type **Security**.
+
+![Creating the IT-Support group](screenshots/16-create-group-it-support.png)
+
+The IT OU now contains the user and the group.
+
+![IT OU contents](screenshots/17-it-ou-contents.png)
+
+---
+
+# Part 4: Group Policy
+
+## 1. Create and Link a GPO
+
+1. Open **Tools > Group Policy Management** and expand the domain.
+2. Right-click the **IT** OU and select **Create a GPO in this domain, and Link it here**.
+3. Name it `IT-Workstation-Policy`.
+
+![Create and link a GPO to the IT OU](screenshots/18-create-and-link-gpo.png)
+
+## 2. Configure the Policy
+
+1. Right-click the GPO and select **Edit**.
+2. Go to **User Configuration > Policies > Administrative Templates > Control Panel > Personalization**.
+3. Open **Prevent changing desktop background**, select **Enabled**, and click **OK**.
+
+![Prevent changing desktop background set to Enabled](screenshots/19-gpo-setting-enabled.png)
+
+> **Note:** This is a *user* policy, so it applies to user accounts inside the IT OU. Microsoft's help text also says the "Desktop Wallpaper" policy must be enabled to fully stop users from changing their wallpaper. This lab verifies that the GPO is delivered and applied, shown in Part 6.
+
+---
+
+# Part 5: Joining a Windows 10 Client to the Domain
+
+## 1. Configure the Client Network
+
+Connect the Windows 10 VM to **VMnet1** and set a static IP. **The client must use the Domain Controller as its DNS server**, otherwise it cannot find the domain.
 
 | Setting | Value |
 |---|---|
@@ -90,42 +183,82 @@ The client uses a static IP and the Domain Controller as its DNS server. This is
 | Subnet mask | `255.255.255.0` |
 | Preferred DNS server | `192.168.175.10` |
 
-![Client static IP and DNS settings](screenshots/10-client-static-ip.png)
+![Client static IP and DNS](screenshots/20-client-static-ip.png)
 
-Connectivity was confirmed with `ping 192.168.175.10`, and `nslookup preetham.local` resolved to the Domain Controller. The client was then joined using `sysdm.cpl`.
+Test the connection with `ping 192.168.175.10`. All four replies should come back (0% loss).
 
-![Joining the client to preetham.local](screenshots/11-join-domain.png)
+![Ping from the client to the Domain Controller](screenshots/21-client-ping-dc.png)
 
-After the restart, I signed in as `PREETHAM\alex.sharma`. `whoami` confirms the domain account and `%LOGONSERVER%` shows `DC01` authenticated the logon.
+## 2. Join the Domain
 
-![whoami and LOGONSERVER on the client](screenshots/12-whoami-logonserver.png)
+1. Press `Win + R`, type `sysdm.cpl`, and press Enter.
+2. On the **Computer Name** tab, click **Change**, select **Domain**, and enter `preetham.local`.
+3. Enter domain credentials that are allowed to join computers, then restart when prompted.
 
-## 7. Verification
+![Joining the domain preetham.local](screenshots/22-join-domain.png)
 
-`nltest /dsgetdc:preetham.local` found `DC01.preetham.local`, and the `SYSVOL` share is reachable at `\\DC01\SYSVOL`.
+## 3. Sign in with a Domain Account
 
-![nltest and SYSVOL access](screenshots/13-nltest-sysvol.png)
+After the restart, choose **Other user** and sign in as `PREETHAM\alex.sharma`. Because the account is set to change its password at first logon, Windows asks for a new password.
 
-`gpresult /r` shows **IT-Workstation-Policy** under Applied Group Policy Objects for `CN=Alex Sharma,OU=IT,DC=preetham,DC=local`.
+Open Command Prompt and run `whoami` and `echo %LOGONSERVER%`. The output shows the domain account and that `DC01` authenticated the logon.
 
-![gpresult showing IT-Workstation-Policy applied](screenshots/14-gpresult-applied.png)
+![whoami and LOGONSERVER](screenshots/23-whoami-logonserver.png)
 
-## 8. Troubleshooting
+---
 
-**`nslookup` shows "DNS request timed out" and "Server: UnKnown".** `nslookup` first does a reverse lookup of the DNS server's IP. No reverse zone exists in this lab, so it prints the timeout. The forward lookup still returns the correct answer.
+# Part 6: Verifying Domain Services and Group Policy
 
-**DNS returned an extra address (`192.168.87.135`).** This was the NAT-network address the VM used before it was moved to VMnet1. I confirmed the DNS Server service was running, ran `ipconfig /flushdns`, and queried the DC directly with `nslookup preetham.local 192.168.175.10`, which returned only `192.168.175.10`.
+## 1. Domain Controller Discovery and SYSVOL
 
-**`gpupdate /force` failed with "lack of network connectivity to a domain controller".** I checked that the client could ping the DC, used the DC as its DNS server, found `DC01` with `nltest /dsgetdc`, and could reach `\\DC01\SYSVOL`. After that, the policy update succeeded and the GPO appeared in `gpresult`.
+Run:
 
-## 9. Security Considerations
+- `nltest /dsgetdc:preetham.local` to confirm the client finds `DC01.preetham.local`
+- `dir \\DC01\SYSVOL` to confirm the SYSVOL share (where Group Policy files live) is reachable
+
+![nltest and SYSVOL](screenshots/24-nltest-sysvol.png)
+
+## 2. Confirm the GPO Is Applied
+
+Run:
+
+- `gpupdate /force`
+- `gpresult /r`
+
+Under **Applied Group Policy Objects** for `CN=Alex Sharma,OU=IT,DC=preetham,DC=local`, `IT-Workstation-Policy` is listed and was applied from `DC01.preetham.local`.
+
+![gpresult showing IT-Workstation-Policy applied](screenshots/25-gpresult-applied.png)
+
+---
+
+# Troubleshooting
+
+**`nslookup` shows "DNS request timed out" and "Server: UnKnown".**
+`nslookup` first does a reverse lookup of the DNS server's own IP. No reverse lookup zone exists in this lab, so it prints the timeout. The forward lookup still returns the correct answer, so this is harmless.
+
+**DNS returned an extra address (`192.168.87.135`).**
+That was the address from the NAT network the VM used before it was moved to VMnet1. I confirmed the DNS Server service was running, ran `ipconfig /flushdns`, and queried the DC directly with `nslookup preetham.local 192.168.175.10`, which returned only `192.168.175.10`.
+
+**`gpupdate /force` failed with "lack of network connectivity to a domain controller".**
+I checked that the client could ping the DC, used the DC as its DNS server, found `DC01` with `nltest /dsgetdc`, and could open `\\DC01\SYSVOL`. After that, the policy update succeeded and the GPO appeared in `gpresult`.
+
+**General checklist**
+
+- The client's only DNS server should be the Domain Controller.
+- The GPO must be linked to the OU that contains the user (for user policies).
+- Run `gpupdate /force`, then `gpresult /r` or `gpresult /h report.html`.
+- Make sure the DNS Server service is running on the Domain Controller.
+
+---
+
+# Security Considerations
 
 - Work was done in isolated virtual machines on a host-only network.
-- Only test accounts were used, and passwords are masked in screenshots.
+- Only test accounts were used, and passwords are masked in the screenshots.
 - New accounts require a password change at first logon.
 - Windows Server was an evaluation copy used for learning.
 
-## 10. Skills Demonstrated
+# Skills Demonstrated
 
 - VMware Workstation virtual networking
 - Windows Server and Active Directory Domain Services
@@ -134,18 +267,7 @@ After the restart, I signed in as `PREETHAM\alex.sharma`. `whoami` confirms the 
 - Group Policy creation, linking and verification (`gpupdate`, `gpresult`)
 - Domain join and troubleshooting (`ping`, `ipconfig`, `nltest`)
 
-## Repository Structure
-
-```text
-├── README.md
-└── screenshots/
-    ├── 01-vmnet1-hostonly.png
-    ├── 02-dc-static-ip.png
-    ├── ...
-    └── 14-gpresult-applied.png
-```
-
-## Conclusion
+# Conclusion
 
 This lab builds a working Active Directory environment end to end: an isolated VMware network, a Domain Controller with DNS, OUs, users, a security group, a linked GPO, and a domain-joined Windows 10 client with verified logon and policy application.
-
+<img width="693" height="697" alt="01-vmnet1-host-only" src="https://github.com/user-attachments/assets/19fdf0ac-55aa-4603-814e-8d10ff3549d9" />
